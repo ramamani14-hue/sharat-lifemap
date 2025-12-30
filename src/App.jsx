@@ -7,6 +7,7 @@ import DateSearch from './components/DateSearch'
 import DayReplay from './components/DayReplay'
 import TimeDisplay from './components/TimeDisplay'
 import CountryStats from './components/CountryStats'
+import ChatBot from './components/ChatBot'
 import './App.css'
 
 function App() {
@@ -286,6 +287,12 @@ function App() {
       
       {/* Decorative grid overlay */}
       <div className="grid-overlay"></div>
+      
+      {/* AI Chat Assistant */}
+      <ChatBot 
+        visits={data.visits}
+        metadata={data.metadata}
+      />
     </div>
   )
 }
