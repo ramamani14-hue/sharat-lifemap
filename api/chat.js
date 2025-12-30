@@ -1,10 +1,4 @@
-const OpenAI = require('openai').default;
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -21,7 +15,8 @@ module.exports = async function handler(req, res) {
   try {
     const { messages, locationContext } = req.body;
 
-    if (!process.env.OPENAI_API_KEY) {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
       return res.status(500).json({ error: 'OpenAI API key not configured' });
     }
 
@@ -47,21 +42,35 @@ When answering questions:
 - Be conversational and helpful
 - If asked about patterns or insights, analyze the data thoughtfully`;
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        ...messages,
-      ],
-      temperature: 0.7,
-      max_tokens: 1000,
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...messages,
+        ],
+        temperature: 0.7,
+        max_tokens: 1000,
+      }),
     });
 
-    const assistantMessage = response.choices[0]?.message?.content || '';
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('OpenAI API error:', errorData);
+      return res.status(500).json({ error: errorData.error?.message || 'OpenAI API error' });
+    }
+
+    const data = await response.json();
+    const assistantMessage = data.choices?.[0]?.message?.content || '';
     
     res.status(200).json({ content: assistantMessage });
   } catch (error) {
     console.error('Chat API error:', error);
     res.status(500).json({ error: error.message || 'Unknown error' });
   }
-};
+}
