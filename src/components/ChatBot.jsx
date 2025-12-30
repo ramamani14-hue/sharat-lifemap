@@ -40,8 +40,22 @@ export default function ChatBot({ visits, metadata }) {
       }
     })
     
-    // Build a sample of recent visits (last 50)
-    const recentSample = sorted.slice(-100).map(v => {
+    // Build a representative sample of visits across the full timeline
+    // Sample evenly across all years to give the LLM context about the entire history
+    const sampleVisits = []
+    const years = Object.keys(yearStats).sort()
+    const visitsPerYear = Math.ceil(150 / years.length) // ~150 total samples spread across years
+    
+    years.forEach(year => {
+      const yearVisits = sorted.filter(v => new Date(v.timestamp * 1000).getFullYear() === parseInt(year))
+      // Take evenly spaced samples from each year
+      const step = Math.max(1, Math.floor(yearVisits.length / visitsPerYear))
+      for (let i = 0; i < yearVisits.length && sampleVisits.length < 150; i += step) {
+        sampleVisits.push(yearVisits[i])
+      }
+    })
+    
+    const recentSample = sampleVisits.map(v => {
       const date = new Date(v.timestamp * 1000).toLocaleDateString('en-US', { 
         year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
       })
