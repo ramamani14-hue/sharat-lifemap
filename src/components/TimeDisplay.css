@@ -1,0 +1,64 @@
+.time-display-panel {
+  background: var(--bg-elevated);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: var(--radius-lg);
+  padding: 12px 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.time-display-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--gradient-electric);
+}
+
+.current-time-label {
+  font-size: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.current-time-value {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+}
+
+.time-month {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--neon-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.time-day {
+  font-size: 2rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: var(--text-bright);
+  line-height: 1;
+  text-shadow: 0 0 25px rgba(0, 212, 255, 0.4);
+}
+
+.time-year {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--neon-pink);
+  font-family: var(--font-mono);
+}
+
+.time-full {
+  display: none;
+}

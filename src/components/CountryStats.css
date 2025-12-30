@@ -1,0 +1,109 @@
+.country-stats-panel {
+  background: var(--bg-elevated);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  width: 200px;
+  max-height: 180px;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--neon-cyan);
+  font-weight: 600;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.panel-icon {
+  font-size: 0.9rem;
+}
+
+.country-count {
+  margin-left: auto;
+  background: rgba(0, 212, 255, 0.15);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+}
+
+.country-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.country-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.country-list::-webkit-scrollbar-track {
+  background: var(--bg-surface);
+  border-radius: 2px;
+}
+
+.country-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+.country-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.country-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.country-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.country-flag {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.country-name {
+  font-size: 0.7rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.country-stats {
+  flex-shrink: 0;
+}
+
+.days-badge {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #0a0a15;
+  font-weight: 700;
+  white-space: nowrap;
+}
+

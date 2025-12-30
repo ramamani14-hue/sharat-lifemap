@@ -1,0 +1,72 @@
+.legend-panel {
+  background: var(--bg-elevated);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 212, 255, 0.1);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+}
+
+.legend-title {
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.legend-icon {
+  color: var(--neon-cyan);
+  text-shadow: var(--glow-cyan);
+  font-size: 0.8rem;
+}
+
+.legend-gradient {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gradient-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, 
+    #00d4ff 0%, 
+    #9397d3 33%, 
+    #ff3ca8 66%, 
+    #ff8c00 100%
+  );
+  box-shadow: 0 0 12px rgba(0, 212, 255, 0.3);
+}
+
+.gradient-labels {
+  display: flex;
+  justify-content: space-between;
+}
+
+.gradient-label {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+.gradient-label.start {
+  color: var(--neon-cyan);
+}
+
+.gradient-label.end {
+  color: var(--neon-orange);
+}
+
+.legend-hint {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  text-align: center;
+}

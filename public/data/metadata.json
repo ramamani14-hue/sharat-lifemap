@@ -1,0 +1,16 @@
+{
+  "totalVisits": 20669,
+  "totalTrips": 36885,
+  "totalArcs": 32257,
+  "minTimestamp": 1409441955,
+  "maxTimestamp": 1766587752,
+  "semanticTypes": {
+    "Unknown": 12695,
+    "Home": 4915,
+    "Work": 508,
+    "Searched Address": 997,
+    "Inferred Home": 572,
+    "Inferred Work": 238,
+    "Aliased Location": 744
+  }
+}

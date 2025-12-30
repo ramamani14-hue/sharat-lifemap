@@ -1,0 +1,170 @@
+.life-chapters {
+  background: var(--bg-elevated);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 212, 255, 0.1);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  max-height: 400px;
+  overflow-y: auto;
+  width: 260px;
+}
+
+.life-chapters::-webkit-scrollbar {
+  width: 4px;
+}
+
+.life-chapters::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.life-chapters::-webkit-scrollbar-thumb {
+  background: rgba(0, 212, 255, 0.3);
+  border-radius: 2px;
+}
+
+.chapters-header {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-weight: 600;
+}
+
+.chapters-icon {
+  font-size: 1rem;
+}
+
+.chapters-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: relative;
+}
+
+.chapter-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 6px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  position: relative;
+  width: 100%;
+}
+
+.chapter-item:hover {
+  background: rgba(0, 212, 255, 0.08);
+}
+
+.chapter-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+  width: 24px;
+  text-align: center;
+}
+
+.chapter-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.chapter-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.chapter-title {
+  font-size: 0.8rem;
+  color: var(--text-bright);
+  font-weight: 600;
+}
+
+.chapter-subtitle {
+  font-size: 0.7rem;
+  color: var(--neon-cyan);
+  font-weight: 500;
+}
+
+.chapter-date {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.chapter-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.chapter-stats .stat {
+  font-size: 0.55rem;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.chapter-stats .stat.favorite {
+  background: rgba(0, 212, 255, 0.1);
+  color: var(--neon-cyan);
+}
+
+.chapter-item:hover .chapter-title {
+  color: var(--neon-cyan);
+}
+
+/* Type-specific styles */
+.chapter-milestone {
+  border-left: 2px solid var(--neon-cyan);
+  margin-left: 2px;
+  padding-left: 10px;
+}
+
+.chapter-home {
+  border-left: 2px solid var(--neon-purple);
+  margin-left: 2px;
+  padding-left: 10px;
+}
+
+.chapter-home .chapter-subtitle {
+  color: var(--neon-purple);
+  font-size: 0.6rem;
+}
+
+.chapter-travel {
+  border-left: 2px solid var(--neon-pink);
+  margin-left: 2px;
+  padding-left: 10px;
+}
+
+.chapter-travel .chapter-subtitle {
+  color: var(--neon-pink);
+}
+
+.chapter-year {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-sm);
+  margin: 4px 0;
+}
+
+.chapter-year:hover {
+  background: rgba(0, 212, 255, 0.1);
+}
