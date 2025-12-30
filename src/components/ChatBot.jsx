@@ -125,26 +125,8 @@ ${countrySummary}`,
         throw new Error('Failed to get response')
       }
 
-      // Handle streaming response
-      const reader = response.body.getReader()
-      const decoder = new TextDecoder()
-      let assistantMessage = ''
-
-      setMessages(prev => [...prev, { role: 'assistant', content: '' }])
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        
-        const text = decoder.decode(value)
-        assistantMessage += text
-        
-        setMessages(prev => {
-          const updated = [...prev]
-          updated[updated.length - 1] = { role: 'assistant', content: assistantMessage }
-          return updated
-        })
-      }
+      const data = await response.json()
+      setMessages(prev => [...prev, { role: 'assistant', content: data.content }])
     } catch (error) {
       console.error('Chat error:', error)
       setMessages(prev => [...prev, { 

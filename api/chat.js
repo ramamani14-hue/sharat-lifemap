@@ -4,17 +4,13 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export const config = {
-  runtime: 'edge',
-};
-
-export default async function handler(req) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405 });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { messages, locationContext } = await req.json();
+    const { messages, locationContext } = req.body;
 
     // Build system prompt with location data context
     const systemPrompt = `You are a helpful assistant that answers questions about the user's location history and travel data. You have access to their complete location timeline.
@@ -46,35 +42,13 @@ When answering questions:
       ],
       temperature: 0.7,
       max_tokens: 1000,
-      stream: true,
     });
 
-    // Create a streaming response
-    const encoder = new TextEncoder();
-    const stream = new ReadableStream({
-      async start(controller) {
-        for await (const chunk of response) {
-          const text = chunk.choices[0]?.delta?.content || '';
-          if (text) {
-            controller.enqueue(encoder.encode(text));
-          }
-        }
-        controller.close();
-      },
-    });
-
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Cache-Control': 'no-cache',
-      },
-    });
+    const assistantMessage = response.choices[0]?.message?.content || '';
+    
+    res.status(200).json({ content: assistantMessage });
   } catch (error) {
     console.error('Chat API error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    res.status(500).json({ error: error.message });
   }
 }
-
