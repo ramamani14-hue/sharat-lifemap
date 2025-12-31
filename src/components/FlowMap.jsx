@@ -766,6 +766,61 @@ function FlowMap({
               billboard: true
             })
           )
+          
+          // Start and End markers - glowing dots
+          const startPoint = fullPath[0]
+          const endPoint = fullPath[fullPath.length - 1]
+          
+          const markerData = [
+            { position: startPoint, type: 'start' },
+            { position: endPoint, type: 'end' }
+          ]
+          
+          // Outer glow for markers
+          result.push(
+            new ScatterplotLayer({
+              id: 'day-replay-markers-glow-outer',
+              data: markerData,
+              getPosition: d => d.position,
+              getFillColor: d => d.type === 'start' 
+                ? [0, 255, 200, 60]   // Cyan glow for start
+                : [255, 100, 200, 60], // Magenta glow for end
+              getRadius: 25,
+              radiusUnits: 'pixels',
+              radiusMinPixels: 20,
+              radiusMaxPixels: 35
+            })
+          )
+          
+          // Middle glow for markers
+          result.push(
+            new ScatterplotLayer({
+              id: 'day-replay-markers-glow-mid',
+              data: markerData,
+              getPosition: d => d.position,
+              getFillColor: d => d.type === 'start' 
+                ? [0, 255, 220, 150]   // Brighter cyan
+                : [255, 150, 220, 150], // Brighter magenta
+              getRadius: 14,
+              radiusUnits: 'pixels',
+              radiusMinPixels: 10,
+              radiusMaxPixels: 18
+            })
+          )
+          
+          // Core of markers - bright white center
+          result.push(
+            new ScatterplotLayer({
+              id: 'day-replay-markers-core',
+              data: markerData,
+              getPosition: d => d.position,
+              getFillColor: [255, 255, 255, 255], // Pure white core
+              getRadius: 6,
+              radiusUnits: 'pixels',
+              radiusMinPixels: 4,
+              radiusMaxPixels: 8
+            })
+          )
         }
       } else if (staticPaths.length > 0 && visibleLayers.trips) {
         // Static path display
