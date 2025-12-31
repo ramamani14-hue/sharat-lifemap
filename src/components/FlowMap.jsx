@@ -650,16 +650,30 @@ function FlowMap({
     // Trips Layer - animated when playing or day replay, static otherwise
     if (visibleLayers.trips || dayReplayActive) {
       if ((animating || dayReplayActive) && animatedTrips.length > 0) {
-        // Time-based color gradient for day replay: bright green (morning) -> bright red (evening)
+        // Time-based color gradient for day replay: bright green → bright yellow → bright red
         const getDayReplayColor = (d) => {
           const t = d.timeProgress || 0
-          // Gradient: Bright Green [0, 255, 100] -> Bright Red [255, 50, 50]
-          return [
-            Math.round(t * 255),          // R: 0 -> 255
-            Math.round(255 - t * 205),    // G: 255 -> 50
-            Math.round(100 - t * 50),     // B: 100 -> 50
-            255
-          ]
+          
+          // 3-stop gradient: Green → Yellow → Red
+          if (t < 0.5) {
+            // Green [0, 255, 0] → Yellow [255, 255, 0]
+            const localT = t * 2 // 0 to 1 for first half
+            return [
+              Math.round(localT * 255),     // R: 0 -> 255
+              255,                           // G: stays 255
+              0,                             // B: stays 0
+              255
+            ]
+          } else {
+            // Yellow [255, 255, 0] → Red [255, 0, 0]
+            const localT = (t - 0.5) * 2 // 0 to 1 for second half
+            return [
+              255,                           // R: stays 255
+              Math.round(255 - localT * 255), // G: 255 -> 0
+              0,                             // B: stays 0
+              255
+            ]
+          }
         }
         
         // Animated trails
@@ -671,9 +685,9 @@ function FlowMap({
             getTimestamps: d => d.timestamps,
             getColor: dayReplayActive ? getDayReplayColor : [0, 212, 255, 255],
             opacity: 1,
-            widthMinPixels: dayReplayActive ? 5 : 4,
-            widthMaxPixels: dayReplayActive ? 10 : 8,
-            trailLength: dayReplayActive ? 2500 : 600, // Longer trail for day replay
+            widthMinPixels: dayReplayActive ? 6 : 4,
+            widthMaxPixels: dayReplayActive ? 14 : 8,
+            trailLength: dayReplayActive ? 3000 : 600, // Longer trail for day replay
             currentTime: tripsTime,
             shadowEnabled: false,
             capRounded: true,
@@ -696,19 +710,32 @@ function FlowMap({
               getPath: d => d.path,
               getColor: d => {
                 const t = d.timeProgress || 0
-                // Bright Green -> Bright Red gradient with lower opacity
-                return [
-                  Math.round(t * 255),          // R: 0 -> 255
-                  Math.round(255 - t * 205),    // G: 255 -> 50
-                  Math.round(100 - t * 50),     // B: 100 -> 50
-                  100
-                ]
+                // 3-stop gradient: Green → Yellow → Red with lower opacity
+                if (t < 0.5) {
+                  const localT = t * 2
+                  return [
+                    Math.round(localT * 255),
+                    255,
+                    0,
+                    120
+                  ]
+                } else {
+                  const localT = (t - 0.5) * 2
+                  return [
+                    255,
+                    Math.round(255 - localT * 255),
+                    0,
+                    120
+                  ]
+                }
               },
-              getWidth: 3,
-              widthMinPixels: 2,
-              widthMaxPixels: 6,
+              getWidth: 4,
+              widthMinPixels: 3,
+              widthMaxPixels: 10,
+              widthUnits: 'pixels',
               capRounded: true,
-              jointRounded: true
+              jointRounded: true,
+              billboard: true
             })
           )
         }
@@ -719,10 +746,11 @@ function FlowMap({
             id: 'static-trips',
             data: staticPaths,
             getPath: d => d.path,
-            getColor: [0, 212, 255, 120],
-            getWidth: 2,
-            widthMinPixels: 1,
-            widthMaxPixels: 4,
+            getColor: [0, 212, 255, 150],
+            getWidth: 3,
+            widthMinPixels: 2,
+            widthMaxPixels: 6,
+            widthUnits: 'pixels',
             capRounded: true,
             jointRounded: true
           })
