@@ -460,6 +460,16 @@ function FlowMap({
     return Array.from(arcCounts.values()).sort((a, b) => a.count - b.count)
   }, [timeFilteredVisits])
 
+  // Reset animation to start when day replay is activated
+  const prevDayReplayRef = useRef(dayReplayActive)
+  useEffect(() => {
+    if (dayReplayActive && !prevDayReplayRef.current) {
+      // Day replay just activated - reset to start
+      setTripsTime(0)
+    }
+    prevDayReplayRef.current = dayReplayActive
+  }, [dayReplayActive])
+
   // Trips animation - runs for both regular animation and day replay
   useEffect(() => {
     const shouldAnimate = (animating || dayReplayActive) && animatedTrips.length > 0
@@ -475,7 +485,10 @@ function FlowMap({
     // Day replay: 15 seconds, regular: 10 seconds
     const loopLength = 10000
     const animationDuration = dayReplayActive ? 15000 : 10000 // ms for full loop
-    let startTime = Date.now()
+    
+    // Start from current tripsTime position (0 if just reset)
+    const initialProgress = tripsTime / loopLength
+    let startTime = Date.now() - (initialProgress * animationDuration)
     
     const animate = () => {
       const elapsed = Date.now() - startTime
