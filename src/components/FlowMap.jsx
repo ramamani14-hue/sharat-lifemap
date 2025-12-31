@@ -641,21 +641,21 @@ function FlowMap({
     // Trips Layer - animated when playing or day replay, static otherwise
     if (visibleLayers.trips || dayReplayActive) {
       if ((animating || dayReplayActive) && animatedTrips.length > 0) {
-        // Animated trails with glow effect (3 layers for day replay)
+        // Animated trails with laser-like glow effect
         
         if (dayReplayActive) {
-          // Outer glow layer - large, soft
+          // Outer glow - subtle, tight
           result.push(
             new TripsLayer({
               id: 'animated-trips-glow-outer',
               data: animatedTrips,
               getPath: d => d.path,
               getTimestamps: d => d.timestamps,
-              getColor: [255, 255, 200, 80], // Warm yellow-white glow
+              getColor: [255, 100, 100, 60], // Subtle red glow
               opacity: 1,
-              widthMinPixels: 24,
-              widthMaxPixels: 40,
-              trailLength: 3500,
+              widthMinPixels: 8,
+              widthMaxPixels: 12,
+              trailLength: 4000,
               currentTime: tripsTime,
               shadowEnabled: false,
               capRounded: true,
@@ -663,18 +663,18 @@ function FlowMap({
             })
           )
           
-          // Middle glow layer
+          // Inner glow - brighter
           result.push(
             new TripsLayer({
               id: 'animated-trips-glow-mid',
               data: animatedTrips,
               getPath: d => d.path,
               getTimestamps: d => d.timestamps,
-              getColor: [255, 255, 150, 150], // Brighter warm glow
+              getColor: [255, 200, 100, 180], // Orange-ish glow
               opacity: 1,
-              widthMinPixels: 14,
-              widthMaxPixels: 24,
-              trailLength: 3200,
+              widthMinPixels: 4,
+              widthMaxPixels: 6,
+              trailLength: 3500,
               currentTime: tripsTime,
               shadowEnabled: false,
               capRounded: true,
@@ -683,7 +683,7 @@ function FlowMap({
           )
         }
         
-        // Core trail - brightest
+        // Core trail - sharp laser
         result.push(
           new TripsLayer({
             id: 'animated-trips',
@@ -692,8 +692,8 @@ function FlowMap({
             getTimestamps: d => d.timestamps,
             getColor: dayReplayActive ? [255, 255, 255, 255] : [0, 212, 255, 255],
             opacity: 1,
-            widthMinPixels: dayReplayActive ? 8 : 4,
-            widthMaxPixels: dayReplayActive ? 16 : 8,
+            widthMinPixels: dayReplayActive ? 2 : 4,
+            widthMaxPixels: dayReplayActive ? 3 : 8,
             trailLength: dayReplayActive ? 3000 : 600,
             currentTime: tripsTime,
             shadowEnabled: false,
