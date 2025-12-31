@@ -485,14 +485,37 @@ function FlowMap({
     // Day replay: 15 seconds, regular: 10 seconds
     const loopLength = 10000
     const animationDuration = dayReplayActive ? 15000 : 10000 // ms for full loop
+    const pauseDuration = dayReplayActive ? 2000 : 500 // Pause before starting and between loops
     
-    // Start from current tripsTime position (0 if just reset)
-    const initialProgress = tripsTime / loopLength
-    let startTime = Date.now() - (initialProgress * animationDuration)
+    let startTime = null
+    let isPaused = true
+    let pauseStartTime = Date.now()
     
     const animate = () => {
-      const elapsed = Date.now() - startTime
-      const progress = (elapsed % animationDuration) / animationDuration
+      const now = Date.now()
+      
+      // Handle pause at start and between loops
+      if (isPaused) {
+        if (now - pauseStartTime >= pauseDuration) {
+          isPaused = false
+          startTime = now
+        }
+        tripsAnimationRef.current = requestAnimationFrame(animate)
+        return
+      }
+      
+      const elapsed = now - startTime
+      const progress = elapsed / animationDuration
+      
+      if (progress >= 1) {
+        // Loop completed - pause before restarting
+        isPaused = true
+        pauseStartTime = now
+        setTripsTime(0) // Reset to start
+        tripsAnimationRef.current = requestAnimationFrame(animate)
+        return
+      }
+      
       const loopTime = progress * loopLength
       setTripsTime(loopTime)
       tripsAnimationRef.current = requestAnimationFrame(animate)
