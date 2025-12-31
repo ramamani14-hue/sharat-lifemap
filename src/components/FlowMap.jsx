@@ -461,10 +461,11 @@ function FlowMap({
     return Array.from(arcCounts.values()).sort((a, b) => a.count - b.count)
   }, [timeFilteredVisits])
 
-  // Reset animation and fly to path start when day replay is activated or day changes
+  // Reset animation when day replay is activated or day changes
   const prevDayReplayRef = useRef(dayReplayActive)
   const prevSelectedDayRef = useRef(selectedDayVisits)
   const shouldResetRef = useRef(false)
+  const pendingFlyToRef = useRef(false)
   
   useEffect(() => {
     // Check if day replay was just activated OR if the selected day changed
@@ -474,27 +475,32 @@ function FlowMap({
     if (dayReplayJustActivated || selectedDayChanged) {
       // Mark that we need to reset - this will be picked up by animation loop
       shouldResetRef.current = true
+      pendingFlyToRef.current = true // Mark that we need to fly to the new path start
       setTripsTime(0)
-      
-      // Fly to the actual start of the line path (first point of animated trips)
-      if (animatedTrips.length > 0 && animatedTrips[0].path.length > 0) {
-        const pathStart = animatedTrips[0].path[0]
-        setViewState(prev => ({
-          ...prev,
-          longitude: pathStart[0],
-          latitude: pathStart[1],
-          zoom: 14,
-          pitch: 55,
-          bearing: Math.random() * 40 - 20,
-          transitionDuration: 2000,
-          transitionInterpolator: new FlyToInterpolator()
-        }))
-      }
     }
     
     prevDayReplayRef.current = dayReplayActive
     prevSelectedDayRef.current = selectedDayVisits
-  }, [dayReplayActive, selectedDayVisits, animatedTrips])
+  }, [dayReplayActive, selectedDayVisits])
+  
+  // Separate effect to fly to path start - runs when animatedTrips updates
+  useEffect(() => {
+    if (pendingFlyToRef.current && dayReplayActive && animatedTrips.length > 0 && animatedTrips[0].path.length > 0) {
+      pendingFlyToRef.current = false
+      
+      const pathStart = animatedTrips[0].path[0]
+      setViewState(prev => ({
+        ...prev,
+        longitude: pathStart[0],
+        latitude: pathStart[1],
+        zoom: 14,
+        pitch: 55,
+        bearing: Math.random() * 40 - 20,
+        transitionDuration: 2000,
+        transitionInterpolator: new FlyToInterpolator()
+      }))
+    }
+  }, [animatedTrips, dayReplayActive])
 
   // Trips animation - runs for both regular animation and day replay
   useEffect(() => {
