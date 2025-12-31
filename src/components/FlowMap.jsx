@@ -642,8 +642,51 @@ function FlowMap({
     // Trips Layer - animated when playing or day replay, static otherwise
     if (visibleLayers.trips || dayReplayActive) {
       if ((animating || dayReplayActive) && animatedTrips.length > 0) {
-        // Animated trails with comet effect - bright head, fading tail
         
+        // For day replay: First add static background path (rendered first = bottom)
+        if (dayReplayActive && animatedTrips.length > 0 && animatedTrips[0].path.length > 1) {
+          const fullPath = animatedTrips[0].path
+          const numSegments = Math.min(50, Math.max(10, Math.floor(fullPath.length / 5)))
+          const segmentSize = Math.ceil(fullPath.length / numSegments)
+          
+          const gradientSegments = []
+          for (let i = 0; i < numSegments; i++) {
+            const startIdx = i * segmentSize
+            const endIdx = Math.min((i + 1) * segmentSize + 1, fullPath.length)
+            if (startIdx >= fullPath.length - 1) break
+            
+            gradientSegments.push({
+              path: fullPath.slice(startIdx, endIdx),
+              timeProgress: i / (numSegments - 1)
+            })
+          }
+          
+          // Static background path - added FIRST so it's at bottom
+          result.push(
+            new PathLayer({
+              id: 'day-replay-path-bg',
+              data: gradientSegments,
+              getPath: d => d.path,
+              getColor: d => {
+                const t = d.timeProgress || 0
+                return [
+                  Math.round(t * 200),
+                  Math.round(220 - t * 170),
+                  255,
+                  38
+                ]
+              },
+              getWidth: 4,
+              widthMinPixels: 3,
+              widthMaxPixels: 10,
+              widthUnits: 'pixels',
+              capRounded: true,
+              jointRounded: true
+            })
+          )
+        }
+        
+        // Animated trails with comet effect - added AFTER static path so they're on top
         if (dayReplayActive) {
           // Outer tail - long, faint, wide fade
           result.push(
@@ -652,11 +695,11 @@ function FlowMap({
               data: animatedTrips,
               getPath: d => d.path,
               getTimestamps: d => d.timestamps,
-              getColor: [100, 50, 180, 30], // Faint purple tail
+              getColor: [100, 50, 180, 30],
               opacity: 1,
               widthMinPixels: 12,
               widthMaxPixels: 18,
-              trailLength: 5000, // Long fading tail
+              trailLength: 5000,
               currentTime: tripsTime,
               shadowEnabled: false,
               capRounded: true,
@@ -671,7 +714,7 @@ function FlowMap({
               data: animatedTrips,
               getPath: d => d.path,
               getTimestamps: d => d.timestamps,
-              getColor: [0, 200, 255, 100], // Electric cyan
+              getColor: [0, 200, 255, 100],
               opacity: 1,
               widthMinPixels: 6,
               widthMaxPixels: 10,
@@ -690,7 +733,7 @@ function FlowMap({
               data: animatedTrips,
               getPath: d => d.path,
               getTimestamps: d => d.timestamps,
-              getColor: [100, 255, 255, 200], // Bright cyan glow
+              getColor: [100, 255, 255, 200],
               opacity: 1,
               widthMinPixels: 3,
               widthMaxPixels: 5,
@@ -703,7 +746,7 @@ function FlowMap({
           )
         }
         
-        // Core - bright white head
+        // Core - bright white head (always on top of other trails)
         result.push(
           new TripsLayer({
             id: 'animated-trips',
@@ -714,7 +757,7 @@ function FlowMap({
             opacity: 1,
             widthMinPixels: dayReplayActive ? 2 : 4,
             widthMaxPixels: dayReplayActive ? 3 : 8,
-            trailLength: dayReplayActive ? 1500 : 600, // Shorter, concentrated head
+            trailLength: dayReplayActive ? 1500 : 600,
             currentTime: tripsTime,
             shadowEnabled: false,
             capRounded: true,
@@ -722,52 +765,9 @@ function FlowMap({
           })
         )
         
-        // Also show static path underneath during day replay with gradient
+        // Start and End markers - added LAST so they're on very top
         if (dayReplayActive && animatedTrips.length > 0 && animatedTrips[0].path.length > 1) {
-          // Split the continuous path into segments for gradient coloring
           const fullPath = animatedTrips[0].path
-          const numSegments = Math.min(50, Math.max(10, Math.floor(fullPath.length / 5)))
-          const segmentSize = Math.ceil(fullPath.length / numSegments)
-          
-          const gradientSegments = []
-          for (let i = 0; i < numSegments; i++) {
-            const startIdx = i * segmentSize
-            const endIdx = Math.min((i + 1) * segmentSize + 1, fullPath.length) // +1 for overlap
-            if (startIdx >= fullPath.length - 1) break
-            
-            gradientSegments.push({
-              path: fullPath.slice(startIdx, endIdx),
-              timeProgress: i / (numSegments - 1) // 0 to 1 across the day
-            })
-          }
-          
-          result.unshift(
-            new PathLayer({
-              id: 'day-replay-path-bg',
-              data: gradientSegments,
-              getPath: d => d.path,
-              getColor: d => {
-                const t = d.timeProgress || 0
-                // Contemporary gradient: Cyan → Purple with 15% opacity
-                // Cyan [0, 220, 255] → Magenta [200, 50, 255]
-                return [
-                  Math.round(t * 200),           // R: 0 -> 200
-                  Math.round(220 - t * 170),     // G: 220 -> 50
-                  255,                            // B: stays 255
-                  38  // ~15% opacity - very subtle
-                ]
-              },
-              getWidth: 4,
-              widthMinPixels: 3,
-              widthMaxPixels: 10,
-              widthUnits: 'pixels',
-              capRounded: true,
-              jointRounded: true,
-              billboard: true
-            })
-          )
-          
-          // Start and End markers - glowing dots
           const startPoint = fullPath[0]
           const endPoint = fullPath[fullPath.length - 1]
           
