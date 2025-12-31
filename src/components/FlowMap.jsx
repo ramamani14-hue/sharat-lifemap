@@ -299,60 +299,51 @@ function FlowMap({
       return points
     }
     
-    // For day replay: distribute animation time by distance traveled, not time elapsed
-    // This removes "pauses" during time spent at locations
+    // For day replay: merge ALL trips into ONE continuous path
+    // This ensures a single unbroken line for the entire day
     if (dayReplayActive) {
-      // Calculate total distance across all trips
-      let totalDistance = 0
-      const tripDistances = []
+      // Sort trips by start time to ensure correct order
+      const sortedTrips = [...timeFilteredTrips].sort((a, b) => 
+        a.path[0].timestamp - b.path[0].timestamp
+      )
       
-      for (const trip of timeFilteredTrips) {
-        let tripDist = 0
-        for (let i = 1; i < trip.path.length; i++) {
-          tripDist += haversineDistance(trip.path[i-1].coordinates, trip.path[i].coordinates)
+      // Merge all trip coordinates into one continuous path
+      const allCoords = []
+      for (const trip of sortedTrips) {
+        for (const point of trip.path) {
+          allCoords.push(point.coordinates)
         }
-        tripDistances.push(tripDist)
-        totalDistance += tripDist
       }
       
-      if (totalDistance === 0) totalDistance = 1
+      if (allCoords.length < 2) {
+        return [{
+          path: allCoords,
+          timestamps: allCoords.map((_, i) => i * 100),
+          timeProgress: 0
+        }]
+      }
       
-      // Build trips with timestamps based on cumulative distance
-      let cumulativeDistance = 0
+      // Apply smooth curve interpolation to the entire merged path
+      const smoothedPath = smoothPath(allCoords)
       
-      return timeFilteredTrips.map((trip, tripIndex) => {
-        // Color based on order in the day (0 = first trip, 1 = last trip)
-        const timeProgress = tripIndex / (timeFilteredTrips.length - 1 || 1)
-        
-        // Extract raw coordinates and apply smooth curve interpolation
-        const rawCoords = trip.path.map(p => p.coordinates)
-        const interpolatedPath = smoothPath(rawCoords)
-        
-        // Calculate timestamps based on distance along path
-        const pathDistances = [0]
-        for (let i = 1; i < interpolatedPath.length; i++) {
-          const segDist = haversineDistance(interpolatedPath[i-1], interpolatedPath[i])
-          pathDistances.push(pathDistances[i-1] + segDist)
-        }
-        const tripTotalDist = pathDistances[pathDistances.length - 1] || 1
-        
-        const tripStartTime = (cumulativeDistance / totalDistance) * 10000
-        const tripEndTime = ((cumulativeDistance + tripDistances[tripIndex]) / totalDistance) * 10000
-        const tripTimeWindow = tripEndTime - tripStartTime
-        
-        const timestamps = pathDistances.map(d => {
-          return tripStartTime + (d / tripTotalDist) * tripTimeWindow
-        })
-        
-        cumulativeDistance += tripDistances[tripIndex]
-        
-        return {
-          path: interpolatedPath,
-          timestamps,
-          activityType: trip.activityType,
-          timeProgress
-        }
-      })
+      // Calculate cumulative distances for timestamp distribution
+      const pathDistances = [0]
+      for (let i = 1; i < smoothedPath.length; i++) {
+        const segDist = haversineDistance(smoothedPath[i-1], smoothedPath[i])
+        pathDistances.push(pathDistances[i-1] + segDist)
+      }
+      const totalDistance = pathDistances[pathDistances.length - 1] || 1
+      
+      // Create timestamps based on distance (0 to 10000)
+      const timestamps = pathDistances.map(d => (d / totalDistance) * 10000)
+      
+      // Return a single continuous trip
+      // timeProgress for each point is its position in the day (0 = start, 1 = end)
+      return [{
+        path: smoothedPath,
+        timestamps,
+        timeProgress: 0.5 // Middle value since color will be per-point based
+      }]
     }
     
     // Regular animation: use actual timestamps
@@ -650,40 +641,15 @@ function FlowMap({
     // Trips Layer - animated when playing or day replay, static otherwise
     if (visibleLayers.trips || dayReplayActive) {
       if ((animating || dayReplayActive) && animatedTrips.length > 0) {
-        // Time-based color gradient for day replay: bright green → bright yellow → bright red
-        const getDayReplayColor = (d) => {
-          const t = d.timeProgress || 0
-          
-          // 3-stop gradient: Green → Yellow → Red
-          if (t < 0.5) {
-            // Green [0, 255, 0] → Yellow [255, 255, 0]
-            const localT = t * 2 // 0 to 1 for first half
-            return [
-              Math.round(localT * 255),     // R: 0 -> 255
-              255,                           // G: stays 255
-              0,                             // B: stays 0
-              255
-            ]
-          } else {
-            // Yellow [255, 255, 0] → Red [255, 0, 0]
-            const localT = (t - 0.5) * 2 // 0 to 1 for second half
-            return [
-              255,                           // R: stays 255
-              Math.round(255 - localT * 255), // G: 255 -> 0
-              0,                             // B: stays 0
-              255
-            ]
-          }
-        }
-        
-        // Animated trails
+        // Animated trails - use bright white/cyan for the moving head
+        // The static path underneath shows the color gradient
         result.push(
           new TripsLayer({
             id: 'animated-trips',
             data: animatedTrips,
             getPath: d => d.path,
             getTimestamps: d => d.timestamps,
-            getColor: dayReplayActive ? getDayReplayColor : [0, 212, 255, 255],
+            getColor: dayReplayActive ? [255, 255, 255, 255] : [0, 212, 255, 255], // Bright white for day replay
             opacity: 1,
             widthMinPixels: dayReplayActive ? 6 : 4,
             widthMaxPixels: dayReplayActive ? 14 : 8,
@@ -696,17 +662,28 @@ function FlowMap({
         )
         
         // Also show static path underneath during day replay with gradient
-        if (dayReplayActive && staticPaths.length > 0) {
-          // Add timeProgress to static paths too
-          const staticPathsWithTime = animatedTrips.map(trip => ({
-            path: trip.path,
-            timeProgress: trip.timeProgress
-          }))
+        if (dayReplayActive && animatedTrips.length > 0 && animatedTrips[0].path.length > 1) {
+          // Split the continuous path into segments for gradient coloring
+          const fullPath = animatedTrips[0].path
+          const numSegments = Math.min(50, Math.max(10, Math.floor(fullPath.length / 5)))
+          const segmentSize = Math.ceil(fullPath.length / numSegments)
+          
+          const gradientSegments = []
+          for (let i = 0; i < numSegments; i++) {
+            const startIdx = i * segmentSize
+            const endIdx = Math.min((i + 1) * segmentSize + 1, fullPath.length) // +1 for overlap
+            if (startIdx >= fullPath.length - 1) break
+            
+            gradientSegments.push({
+              path: fullPath.slice(startIdx, endIdx),
+              timeProgress: i / (numSegments - 1) // 0 to 1 across the day
+            })
+          }
           
           result.unshift(
             new PathLayer({
               id: 'day-replay-path-bg',
-              data: staticPathsWithTime,
+              data: gradientSegments,
               getPath: d => d.path,
               getColor: d => {
                 const t = d.timeProgress || 0
