@@ -460,15 +460,30 @@ function FlowMap({
     return Array.from(arcCounts.values()).sort((a, b) => a.count - b.count)
   }, [timeFilteredVisits])
 
-  // Reset animation to start when day replay is activated
+  // Reset animation and fly to path start when day replay is activated
   const prevDayReplayRef = useRef(dayReplayActive)
   useEffect(() => {
     if (dayReplayActive && !prevDayReplayRef.current) {
       // Day replay just activated - reset to start
       setTripsTime(0)
+      
+      // Fly to the actual start of the line path (first point of animated trips)
+      if (animatedTrips.length > 0 && animatedTrips[0].path.length > 0) {
+        const pathStart = animatedTrips[0].path[0]
+        setViewState(prev => ({
+          ...prev,
+          longitude: pathStart[0],
+          latitude: pathStart[1],
+          zoom: 14,
+          pitch: 55,
+          bearing: Math.random() * 40 - 20,
+          transitionDuration: 2000,
+          transitionInterpolator: new FlyToInterpolator()
+        }))
+      }
     }
     prevDayReplayRef.current = dayReplayActive
-  }, [dayReplayActive])
+  }, [dayReplayActive, animatedTrips])
 
   // Trips animation - runs for both regular animation and day replay
   useEffect(() => {

@@ -238,17 +238,7 @@ function App() {
             onDayReplay={(dayVisits) => {
               setSelectedDayVisits(dayVisits)
               setDayReplayActive(true)
-              
-              // Pan to the first location of the day (start of the path)
-              if (dayVisits && dayVisits.length > 0) {
-                const sortedVisits = [...dayVisits].sort((a, b) => a.timestamp - b.timestamp)
-                const firstVisit = sortedVisits[0]
-                setFlyToLocation({
-                  longitude: firstVisit.coordinates[0],
-                  latitude: firstVisit.coordinates[1],
-                  zoom: 13
-                })
-              }
+              // Camera pan to path start is handled by FlowMap
             }}
           />
           
