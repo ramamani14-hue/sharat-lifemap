@@ -115,7 +115,8 @@ function FlowMap({
   animating,
   flyToLocation,
   setFlyToLocation,
-  dayReplayActive
+  dayReplayActive,
+  selectedDayVisits
 }) {
   const [viewState, setViewState] = useState(INITIAL_VIEW_STATE)
   const [tripsTime, setTripsTime] = useState(0)
@@ -460,11 +461,19 @@ function FlowMap({
     return Array.from(arcCounts.values()).sort((a, b) => a.count - b.count)
   }, [timeFilteredVisits])
 
-  // Reset animation and fly to path start when day replay is activated
+  // Reset animation and fly to path start when day replay is activated or day changes
   const prevDayReplayRef = useRef(dayReplayActive)
+  const prevSelectedDayRef = useRef(selectedDayVisits)
+  const shouldResetRef = useRef(false)
+  
   useEffect(() => {
-    if (dayReplayActive && !prevDayReplayRef.current) {
-      // Day replay just activated - reset to start
+    // Check if day replay was just activated OR if the selected day changed
+    const dayReplayJustActivated = dayReplayActive && !prevDayReplayRef.current
+    const selectedDayChanged = dayReplayActive && selectedDayVisits !== prevSelectedDayRef.current
+    
+    if (dayReplayJustActivated || selectedDayChanged) {
+      // Mark that we need to reset - this will be picked up by animation loop
+      shouldResetRef.current = true
       setTripsTime(0)
       
       // Fly to the actual start of the line path (first point of animated trips)
@@ -482,8 +491,10 @@ function FlowMap({
         }))
       }
     }
+    
     prevDayReplayRef.current = dayReplayActive
-  }, [dayReplayActive, animatedTrips])
+    prevSelectedDayRef.current = selectedDayVisits
+  }, [dayReplayActive, selectedDayVisits, animatedTrips])
 
   // Trips animation - runs for both regular animation and day replay
   useEffect(() => {
@@ -506,8 +517,23 @@ function FlowMap({
     let isPaused = true
     let pauseStartTime = Date.now()
     
+    // Check if we need to reset (new day selected)
+    if (shouldResetRef.current) {
+      shouldResetRef.current = false
+      isPaused = true
+      pauseStartTime = Date.now()
+    }
+    
     const animate = () => {
       const now = Date.now()
+      
+      // Check for external reset request (new day selected)
+      if (shouldResetRef.current) {
+        shouldResetRef.current = false
+        isPaused = true
+        pauseStartTime = now
+        setTripsTime(0)
+      }
       
       // Handle pause at start and between loops
       if (isPaused) {
@@ -543,7 +569,7 @@ function FlowMap({
         cancelAnimationFrame(tripsAnimationRef.current)
       }
     }
-  }, [animating, dayReplayActive, animatedTrips.length])
+  }, [animating, dayReplayActive, animatedTrips.length, selectedDayVisits])
 
   // Fly to location
   useEffect(() => {

@@ -206,6 +206,7 @@ function App() {
         flyToLocation={flyToLocation}
         setFlyToLocation={setFlyToLocation}
         dayReplayActive={dayReplayActive}
+        selectedDayVisits={selectedDayVisits}
       />
       
       <div className="ui-overlay">
