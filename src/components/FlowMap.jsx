@@ -641,19 +641,60 @@ function FlowMap({
     // Trips Layer - animated when playing or day replay, static otherwise
     if (visibleLayers.trips || dayReplayActive) {
       if ((animating || dayReplayActive) && animatedTrips.length > 0) {
-        // Animated trails - use bright white/cyan for the moving head
-        // The static path underneath shows the color gradient
+        // Animated trails with glow effect (3 layers for day replay)
+        
+        if (dayReplayActive) {
+          // Outer glow layer - large, soft
+          result.push(
+            new TripsLayer({
+              id: 'animated-trips-glow-outer',
+              data: animatedTrips,
+              getPath: d => d.path,
+              getTimestamps: d => d.timestamps,
+              getColor: [255, 255, 200, 80], // Warm yellow-white glow
+              opacity: 1,
+              widthMinPixels: 24,
+              widthMaxPixels: 40,
+              trailLength: 3500,
+              currentTime: tripsTime,
+              shadowEnabled: false,
+              capRounded: true,
+              jointRounded: true
+            })
+          )
+          
+          // Middle glow layer
+          result.push(
+            new TripsLayer({
+              id: 'animated-trips-glow-mid',
+              data: animatedTrips,
+              getPath: d => d.path,
+              getTimestamps: d => d.timestamps,
+              getColor: [255, 255, 150, 150], // Brighter warm glow
+              opacity: 1,
+              widthMinPixels: 14,
+              widthMaxPixels: 24,
+              trailLength: 3200,
+              currentTime: tripsTime,
+              shadowEnabled: false,
+              capRounded: true,
+              jointRounded: true
+            })
+          )
+        }
+        
+        // Core trail - brightest
         result.push(
           new TripsLayer({
             id: 'animated-trips',
             data: animatedTrips,
             getPath: d => d.path,
             getTimestamps: d => d.timestamps,
-            getColor: dayReplayActive ? [255, 255, 255, 255] : [0, 212, 255, 255], // Bright white for day replay
+            getColor: dayReplayActive ? [255, 255, 255, 255] : [0, 212, 255, 255],
             opacity: 1,
-            widthMinPixels: dayReplayActive ? 6 : 4,
-            widthMaxPixels: dayReplayActive ? 14 : 8,
-            trailLength: dayReplayActive ? 3000 : 600, // Longer trail for day replay
+            widthMinPixels: dayReplayActive ? 8 : 4,
+            widthMaxPixels: dayReplayActive ? 16 : 8,
+            trailLength: dayReplayActive ? 3000 : 600,
             currentTime: tripsTime,
             shadowEnabled: false,
             capRounded: true,
