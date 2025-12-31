@@ -267,8 +267,9 @@ function FlowMap({
         const p3 = i + 2 >= pathCoords.length ? pathCoords[pathCoords.length - 1] : pathCoords[i + 2]
         
         // Calculate segment distance to determine interpolation density
+        // More points = smoother curves
         const segDist = haversineDistance(p1, p2)
-        const numPoints = Math.min(12, Math.max(3, Math.ceil(segDist / 0.5)))
+        const numPoints = Math.min(20, Math.max(8, Math.ceil(segDist / 0.2))) // Increased for smoother curves
         
         const splinePoints = catmullRomSpline(p0, p1, p2, p3, numPoints)
         
