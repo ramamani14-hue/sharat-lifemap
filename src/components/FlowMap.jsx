@@ -710,14 +710,14 @@ function FlowMap({
               getPath: d => d.path,
               getColor: d => {
                 const t = d.timeProgress || 0
-                // 3-stop gradient: Green → Yellow → Red with lower opacity
+                // 3-stop gradient: Green → Yellow → Red with 25% opacity
                 if (t < 0.5) {
                   const localT = t * 2
                   return [
                     Math.round(localT * 255),
                     255,
                     0,
-                    120
+                    64  // 25% opacity
                   ]
                 } else {
                   const localT = (t - 0.5) * 2
@@ -725,7 +725,7 @@ function FlowMap({
                     255,
                     Math.round(255 - localT * 255),
                     0,
-                    120
+                    64  // 25% opacity
                   ]
                 }
               },
