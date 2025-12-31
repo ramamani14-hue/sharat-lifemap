@@ -213,8 +213,8 @@ function App() {
         {/* Top Left - Header & Controls */}
         <div className="ui-top-left">
           <header className="header">
-            <div className="header-badge">FLOW</div>
-            <h1>Location Intelligence</h1>
+            <div className="header-badge">SHARAT</div>
+            <h1>An Odyssey</h1>
           </header>
           
           <Controls 
