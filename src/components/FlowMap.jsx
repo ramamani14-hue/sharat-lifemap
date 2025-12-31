@@ -556,6 +556,10 @@ function FlowMap({
     if (countriesGeoJson) {
       const maxDays = Math.max(...Object.values(visitedCountries), 1)
       
+      // Calculate zoom-based transparency for country fills
+      // At zoom 4-6: full visibility, zoom 10+: nearly invisible
+      const zoomAlphaFactor = Math.max(0, Math.min(1, (10 - viewState.zoom) / 5))
+      
       result.push(
         new GeoJsonLayer({
           id: 'countries',
@@ -570,18 +574,23 @@ function FlowMap({
             // Pure cyan glow - intensity increases with days
             // Use log scale for better distribution
             const t = Math.min(Math.log(days + 1) / Math.log(maxDays + 1), 1)
+            // Base alpha reduced by zoom factor
+            const baseAlpha = 25 + t * 100
+            const zoomAdjustedAlpha = Math.round(baseAlpha * zoomAlphaFactor)
             return [
               0,                              // R: 0 (pure cyan)
               Math.round(180 + t * 32),       // G: 180 -> 212
               255,                            // B: 255
-              Math.round(25 + t * 100)        // Alpha: 25 -> 125 (brightens)
+              zoomAdjustedAlpha               // Alpha fades as you zoom in
             ]
           },
           getLineColor: f => {
             const days = visitedCountries[f.properties.name] || 0
             if (days === 0) return [0, 0, 0, 0]
             const t = Math.min(Math.log(days + 1) / Math.log(maxDays + 1), 1)
-            return [0, 212, 255, Math.round(150 + t * 105)] // Bright cyan border
+            // Border stays more visible but still fades somewhat
+            const borderAlphaFactor = Math.max(0.3, zoomAlphaFactor)
+            return [0, 212, 255, Math.round((150 + t * 105) * borderAlphaFactor)]
           },
           getLineWidth: f => {
             const days = visitedCountries[f.properties.name] || 0
@@ -592,8 +601,8 @@ function FlowMap({
           lineWidthMinPixels: 2,
           lineWidthMaxPixels: 8,
           updateTriggers: {
-            getFillColor: [visitedCountries],
-            getLineColor: [visitedCountries],
+            getFillColor: [visitedCountries, viewState.zoom],
+            getLineColor: [visitedCountries, viewState.zoom],
             getLineWidth: [visitedCountries]
           }
         })
