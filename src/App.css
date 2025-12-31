@@ -156,18 +156,22 @@
   align-items: flex-end;
 }
 
-/* Header */
+/* Header - Modern Minimal Design */
 .header {
-  background: var(--bg-elevated);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(0, 212, 255, 0.15);
-  border-radius: var(--radius-lg);
-  padding: 14px 20px;
+  background: linear-gradient(135deg, rgba(10, 15, 30, 0.95) 0%, rgba(20, 25, 45, 0.9) 100%);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 16px 24px;
   position: relative;
   overflow: hidden;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
+  box-shadow: 
+    0 4px 24px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 0 60px rgba(100, 200, 255, 0.05);
 }
 
 .header::before {
@@ -176,25 +180,55 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 2px;
-  background: var(--gradient-neon);
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(100, 200, 255, 0.5) 20%,
+    rgba(200, 100, 255, 0.5) 50%,
+    rgba(100, 200, 255, 0.5) 80%,
+    transparent 100%
+  );
+}
+
+.header::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  background: #00ff88;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #00ff88, 0 0 20px #00ff88;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: translateY(-50%) scale(1); }
+  50% { opacity: 0.5; transform: translateY(-50%) scale(0.8); }
 }
 
 .header-badge {
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  color: var(--bg-void);
-  background: var(--gradient-neon);
-  padding: 4px 8px;
-  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(100, 200, 255, 0.2) 0%, rgba(200, 100, 255, 0.2) 100%);
+  border: 1px solid rgba(100, 200, 255, 0.3);
+  padding: 6px 12px;
+  border-radius: 6px;
+  text-transform: uppercase;
 }
 
 .header h1 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--text-bright);
-  letter-spacing: -0.01em;
+  font-size: 1.2rem;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.1em;
+  text-transform: lowercase;
+  font-style: italic;
 }
 
 /* Map container */
