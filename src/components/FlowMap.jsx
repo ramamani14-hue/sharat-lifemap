@@ -641,21 +641,21 @@ function FlowMap({
     // Trips Layer - animated when playing or day replay, static otherwise
     if (visibleLayers.trips || dayReplayActive) {
       if ((animating || dayReplayActive) && animatedTrips.length > 0) {
-        // Animated trails with laser-like glow effect
+        // Animated trails with comet effect - bright head, fading tail
         
         if (dayReplayActive) {
-          // Outer glow - subtle, tight
+          // Outer tail - long, faint, wide fade
           result.push(
             new TripsLayer({
-              id: 'animated-trips-glow-outer',
+              id: 'animated-trips-tail-outer',
               data: animatedTrips,
               getPath: d => d.path,
               getTimestamps: d => d.timestamps,
-              getColor: [255, 100, 100, 60], // Subtle red glow
+              getColor: [100, 50, 180, 30], // Faint purple tail
               opacity: 1,
-              widthMinPixels: 8,
-              widthMaxPixels: 12,
-              trailLength: 4000,
+              widthMinPixels: 12,
+              widthMaxPixels: 18,
+              trailLength: 5000, // Long fading tail
               currentTime: tripsTime,
               shadowEnabled: false,
               capRounded: true,
@@ -663,18 +663,37 @@ function FlowMap({
             })
           )
           
-          // Inner glow - brighter
+          // Mid tail - electric blue
           result.push(
             new TripsLayer({
-              id: 'animated-trips-glow-mid',
+              id: 'animated-trips-tail-mid',
               data: animatedTrips,
               getPath: d => d.path,
               getTimestamps: d => d.timestamps,
-              getColor: [255, 200, 100, 180], // Orange-ish glow
+              getColor: [0, 200, 255, 100], // Electric cyan
               opacity: 1,
-              widthMinPixels: 4,
-              widthMaxPixels: 6,
+              widthMinPixels: 6,
+              widthMaxPixels: 10,
               trailLength: 3500,
+              currentTime: tripsTime,
+              shadowEnabled: false,
+              capRounded: true,
+              jointRounded: true
+            })
+          )
+          
+          // Inner glow - bright cyan
+          result.push(
+            new TripsLayer({
+              id: 'animated-trips-glow',
+              data: animatedTrips,
+              getPath: d => d.path,
+              getTimestamps: d => d.timestamps,
+              getColor: [100, 255, 255, 200], // Bright cyan glow
+              opacity: 1,
+              widthMinPixels: 3,
+              widthMaxPixels: 5,
+              trailLength: 2500,
               currentTime: tripsTime,
               shadowEnabled: false,
               capRounded: true,
@@ -683,7 +702,7 @@ function FlowMap({
           )
         }
         
-        // Core trail - sharp laser
+        // Core - bright white head
         result.push(
           new TripsLayer({
             id: 'animated-trips',
@@ -694,7 +713,7 @@ function FlowMap({
             opacity: 1,
             widthMinPixels: dayReplayActive ? 2 : 4,
             widthMaxPixels: dayReplayActive ? 3 : 8,
-            trailLength: dayReplayActive ? 3000 : 600,
+            trailLength: dayReplayActive ? 1500 : 600, // Shorter, concentrated head
             currentTime: tripsTime,
             shadowEnabled: false,
             capRounded: true,
@@ -728,24 +747,14 @@ function FlowMap({
               getPath: d => d.path,
               getColor: d => {
                 const t = d.timeProgress || 0
-                // 3-stop gradient: Green → Yellow → Red with 25% opacity
-                if (t < 0.5) {
-                  const localT = t * 2
-                  return [
-                    Math.round(localT * 255),
-                    255,
-                    0,
-                    64  // 25% opacity
-                  ]
-                } else {
-                  const localT = (t - 0.5) * 2
-                  return [
-                    255,
-                    Math.round(255 - localT * 255),
-                    0,
-                    64  // 25% opacity
-                  ]
-                }
+                // Contemporary gradient: Cyan → Purple with 15% opacity
+                // Cyan [0, 220, 255] → Magenta [200, 50, 255]
+                return [
+                  Math.round(t * 200),           // R: 0 -> 200
+                  Math.round(220 - t * 170),     // G: 220 -> 50
+                  255,                            // B: stays 255
+                  38  // ~15% opacity - very subtle
+                ]
               },
               getWidth: 4,
               widthMinPixels: 3,
