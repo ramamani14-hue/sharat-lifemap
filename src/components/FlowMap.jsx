@@ -228,7 +228,62 @@ function FlowMap({
       return R * c
     }
     
-    // Interpolate points along a segment to ensure smooth animation (lightweight version)
+    // Catmull-Rom spline interpolation for smooth curves through points
+    const catmullRomSpline = (p0, p1, p2, p3, numPoints = 8) => {
+      const points = []
+      for (let i = 0; i <= numPoints; i++) {
+        const t = i / numPoints
+        const t2 = t * t
+        const t3 = t2 * t
+        
+        // Catmull-Rom basis functions
+        const x = 0.5 * (
+          (2 * p1[0]) +
+          (-p0[0] + p2[0]) * t +
+          (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2 +
+          (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3
+        )
+        const y = 0.5 * (
+          (2 * p1[1]) +
+          (-p0[1] + p2[1]) * t +
+          (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 +
+          (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3
+        )
+        points.push([x, y])
+      }
+      return points
+    }
+    
+    // Smooth an entire path using Catmull-Rom splines
+    const smoothPath = (pathCoords) => {
+      if (pathCoords.length < 3) return pathCoords
+      
+      const smoothed = []
+      for (let i = 0; i < pathCoords.length - 1; i++) {
+        // Get 4 control points for the spline (with mirroring at edges)
+        const p0 = i === 0 ? pathCoords[0] : pathCoords[i - 1]
+        const p1 = pathCoords[i]
+        const p2 = pathCoords[i + 1]
+        const p3 = i + 2 >= pathCoords.length ? pathCoords[pathCoords.length - 1] : pathCoords[i + 2]
+        
+        // Calculate segment distance to determine interpolation density
+        const segDist = haversineDistance(p1, p2)
+        const numPoints = Math.min(12, Math.max(3, Math.ceil(segDist / 0.5)))
+        
+        const splinePoints = catmullRomSpline(p0, p1, p2, p3, numPoints)
+        
+        // Add all points except the last (to avoid duplicates)
+        for (let j = 0; j < splinePoints.length - 1; j++) {
+          smoothed.push(splinePoints[j])
+        }
+      }
+      // Add the final point
+      smoothed.push(pathCoords[pathCoords.length - 1])
+      
+      return smoothed
+    }
+    
+    // Interpolate points along a segment (fallback for simple cases)
     const interpolateSegment = (start, end) => {
       const distance = haversineDistance(start, end)
       const numPoints = Math.min(4, Math.max(2, Math.ceil(distance / 2)))
@@ -269,26 +324,9 @@ function FlowMap({
         // Color based on order in the day (0 = first trip, 1 = last trip)
         const timeProgress = tripIndex / (timeFilteredTrips.length - 1 || 1)
         
-        // Interpolate sparse segments
-        const interpolatedPath = []
-        for (let i = 0; i < trip.path.length; i++) {
-          if (i === 0) {
-            interpolatedPath.push(trip.path[i].coordinates)
-          } else {
-            const prevCoord = trip.path[i - 1].coordinates
-            const currCoord = trip.path[i].coordinates
-            const distance = haversineDistance(prevCoord, currCoord)
-            
-            if (distance > 2) {
-              const interpPoints = interpolateSegment(prevCoord, currCoord)
-              for (let j = 1; j < interpPoints.length; j++) {
-                interpolatedPath.push(interpPoints[j])
-              }
-            } else {
-              interpolatedPath.push(currCoord)
-            }
-          }
-        }
+        // Extract raw coordinates and apply smooth curve interpolation
+        const rawCoords = trip.path.map(p => p.coordinates)
+        const interpolatedPath = smoothPath(rawCoords)
         
         // Calculate timestamps based on distance along path
         const pathDistances = [0]
@@ -612,14 +650,14 @@ function FlowMap({
     // Trips Layer - animated when playing or day replay, static otherwise
     if (visibleLayers.trips || dayReplayActive) {
       if ((animating || dayReplayActive) && animatedTrips.length > 0) {
-        // Time-based color gradient for day replay: yellow (morning) -> green (evening)
+        // Time-based color gradient for day replay: bright green (morning) -> bright red (evening)
         const getDayReplayColor = (d) => {
           const t = d.timeProgress || 0
-          // Gradient: Yellow [255, 220, 50] -> Green [50, 205, 100]
+          // Gradient: Bright Green [0, 255, 100] -> Bright Red [255, 50, 50]
           return [
-            Math.round(255 - t * 205),    // R: 255 -> 50
-            Math.round(220 - t * 15),     // G: 220 -> 205
-            Math.round(50 + t * 50),      // B: 50 -> 100
+            Math.round(t * 255),          // R: 0 -> 255
+            Math.round(255 - t * 205),    // G: 255 -> 50
+            Math.round(100 - t * 50),     // B: 100 -> 50
             255
           ]
         }
@@ -658,12 +696,12 @@ function FlowMap({
               getPath: d => d.path,
               getColor: d => {
                 const t = d.timeProgress || 0
-                // Yellow -> Green gradient with lower opacity
+                // Bright Green -> Bright Red gradient with lower opacity
                 return [
-                  Math.round(255 - t * 205),
-                  Math.round(220 - t * 15),
-                  Math.round(50 + t * 50),
-                  80
+                  Math.round(t * 255),          // R: 0 -> 255
+                  Math.round(255 - t * 205),    // G: 255 -> 50
+                  Math.round(100 - t * 50),     // B: 100 -> 50
+                  100
                 ]
               },
               getWidth: 3,
