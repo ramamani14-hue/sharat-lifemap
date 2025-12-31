@@ -149,8 +149,20 @@ function FlowMap({
   const timeFilteredTrips = useMemo(() => {
     if (!trips || trips.length === 0) return []
     
-    const rangeStart = minTime + (maxTime - minTime) * timeRange[0]
-    const rangeEnd = minTime + (maxTime - minTime) * timeRange[1]
+    let rangeStart, rangeEnd
+    
+    // If in day replay mode, use the selected day's time range
+    if (dayReplayActive && selectedDayVisits && selectedDayVisits.length > 0) {
+      const dayTimestamps = selectedDayVisits.map(v => v.timestamp)
+      const dayStart = Math.min(...dayTimestamps)
+      const dayEnd = Math.max(...dayTimestamps)
+      // Expand range slightly to capture trips that start before first visit or end after last
+      rangeStart = dayStart - 3600 // 1 hour before
+      rangeEnd = dayEnd + 3600 // 1 hour after
+    } else {
+      rangeStart = minTime + (maxTime - minTime) * timeRange[0]
+      rangeEnd = minTime + (maxTime - minTime) * timeRange[1]
+    }
     
     // Filter by time range first
     const timeFiltered = trips.filter(trip => {
@@ -211,7 +223,7 @@ function FlowMap({
     }
     
     return kept
-  }, [trips, timeRange, minTime, maxTime])
+  }, [trips, timeRange, minTime, maxTime, dayReplayActive, selectedDayVisits])
   
   // Format trips for TripsLayer animation with interpolation and speed scaling
   const animatedTrips = useMemo(() => {
